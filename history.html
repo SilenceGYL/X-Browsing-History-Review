@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>X 浏览历史</title>
+    <link rel="stylesheet" href="history.css" />
+  </head>
+  <body>
+    <header class="hero">
+      <div class="hero-inner">
+        <div>
+          <p class="eyebrow">YOUR PRIVATE X ARCHIVE</p>
+          <h1>找到那条刚刚错过的帖子</h1>
+          <p class="subtitle">在本机记录、搜索和整理你真正看过的 X 帖子。</p>
+        </div>
+        <button class="recording-toggle" id="toggle-recording" type="button" aria-pressed="true">
+          <span class="pulse"></span>
+          <span id="toggle-label">正在记录</span>
+        </button>
+      </div>
+    </header>
+
+    <main>
+      <section class="stat-grid" aria-label="浏览统计">
+        <article>
+          <span>全部帖子</span>
+          <strong id="stat-total">0</strong>
+        </article>
+        <article>
+          <span>今天看过</span>
+          <strong id="stat-today">0</strong>
+        </article>
+        <article>
+          <span>浏览作者</span>
+          <strong id="stat-authors">0</strong>
+        </article>
+      </section>
+
+      <section class="toolbar">
+        <label class="search">
+          <span>⌕</span>
+          <input id="search-input" type="search" placeholder="搜索关键词、作者 @handle 或帖子链接" />
+        </label>
+        <select id="date-filter" aria-label="筛选浏览时间">
+          <option value="0">全部时间</option>
+          <option value="1">今天</option>
+          <option value="7">最近 7 天</option>
+          <option value="30">最近 30 天</option>
+        </select>
+        <button class="secondary-button" id="open-settings" type="button">设置</button>
+      </section>
+
+      <section class="history-section">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">VIEWED POSTS</p>
+            <h2 id="results-title">最近浏览</h2>
+          </div>
+          <div class="actions">
+            <button class="quiet-button" id="export-history" type="button">导出</button>
+            <label class="quiet-button file-label">
+              导入
+              <input id="import-history" type="file" accept="application/json" />
+            </label>
+            <button class="danger-button" id="clear-history" type="button">清空历史</button>
+          </div>
+        </div>
+
+        <div class="history-list" id="history-list"></div>
+        <div class="empty-state" id="empty-state" hidden>
+          <h3>这里还没有匹配的帖子</h3>
+          <p>去 X 浏览一会儿，或者换个关键词再试试。</p>
+        </div>
+        <button class="load-more" id="load-more" type="button" hidden>加载更多</button>
+      </section>
+    </main>
+
+    <dialog id="settings-dialog">
+      <form method="dialog">
+        <div class="dialog-heading">
+          <div>
+            <p class="eyebrow">PREFERENCES</p>
+            <h2>记录设置</h2>
+          </div>
+          <button class="icon-button" value="cancel" aria-label="关闭设置">×</button>
+        </div>
+
+        <label class="field">
+          <span>屏幕停留多久后记录</span>
+          <small>过滤掉快速滑过的帖子</small>
+          <select id="dwell-ms">
+            <option value="800">0.8 秒</option>
+            <option value="1200">1.2 秒</option>
+            <option value="2000">2 秒</option>
+            <option value="3000">3 秒</option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span>最多保留多少条</span>
+          <small>达到上限后自动删除最早的记录</small>
+          <select id="max-items">
+            <option value="10000">10,000 条</option>
+            <option value="30000">30,000 条</option>
+            <option value="50000">50,000 条</option>
+            <option value="100000">100,000 条</option>
+          </select>
+        </label>
+
+        <div class="privacy-note">
+          <strong>本地保存</strong>
+          <p>历史不会上传到任何服务器。卸载扩展前请先导出备份。</p>
+        </div>
+
+        <button class="primary-button" id="save-settings" value="default" type="button">保存设置</button>
+      </form>
+    </dialog>
+
+    <div class="toast" id="toast" role="status" hidden></div>
+    <script src="history.js"></script>
+  </body>
+</html>

@@ -1,0 +1,34 @@
+{
+  "manifest_version": 3,
+  "name": "X 浏览历史",
+  "version": "0.1.2",
+  "description": "自动记录在 X 上真正浏览过的帖子，并支持本地搜索、筛选和导出。",
+  "permissions": [
+    "storage",
+    "unlimitedStorage"
+  ],
+  "host_permissions": [
+    "https://x.com/*",
+    "https://twitter.com/*"
+  ],
+  "background": {
+    "service_worker": "src/background.js"
+  },
+  "action": {
+    "default_title": "X 浏览历史",
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://x.com/*",
+        "https://twitter.com/*"
+      ],
+      "js": [
+        "src/content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "options_page": "history.html"
+}

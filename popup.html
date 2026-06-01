@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>X 浏览历史</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">LOCAL HISTORY</p>
+        <h1>X 浏览历史</h1>
+      </div>
+      <button class="toggle" id="toggle-recording" type="button" aria-pressed="true">
+        <span class="toggle-dot"></span>
+        <span id="toggle-label">记录中</span>
+      </button>
+    </header>
+
+    <main>
+      <section class="stats" aria-label="浏览统计">
+        <div>
+          <strong id="stat-today">0</strong>
+          <span>今天看过</span>
+        </div>
+        <div>
+          <strong id="stat-total">0</strong>
+          <span>全部记录</span>
+        </div>
+      </section>
+
+      <label class="search">
+        <span class="search-icon">⌕</span>
+        <input id="search-input" type="search" placeholder="搜关键词、作者或链接" />
+      </label>
+
+      <section class="results-section">
+        <div class="section-heading">
+          <h2 id="results-title">最近浏览</h2>
+          <button class="text-button" id="open-history" type="button">打开完整历史</button>
+        </div>
+        <div class="results" id="results"></div>
+        <p class="empty" id="empty-state" hidden>还没有记录。去 X 刷一会儿，再回来看看。</p>
+      </section>
+    </main>
+
+    <footer>
+      <span>数据只保存在你的浏览器里</span>
+    </footer>
+
+    <script src="popup.js"></script>
+  </body>
+</html>
