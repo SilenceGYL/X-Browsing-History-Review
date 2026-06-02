@@ -2,6 +2,8 @@
 
 一个本地优先的 Chrome / Edge 扩展：自动记录你在 X 上真正看过的帖子，并提供可搜索的浏览历史。
 
+![X 浏览历史图标](icons/icon-128.png)
+
 ## 能做什么
 
 - 在帖子进入屏幕并停留一段时间后自动记录，快速划过的不算。
@@ -12,11 +14,12 @@
 
 ## 安装
 
-1. 打开 Chrome 的 `chrome://extensions/`，或 Edge 的 `edge://extensions/`。
-2. 打开右上角的“开发者模式”。
-3. 点击“加载已解压的扩展程序”。
-4. 选择当前目录：`x-view-history`。
-5. 打开或刷新 `https://x.com/`，正常浏览即可开始记录。
+1. 下载 [最新版 ZIP](https://github.com/SilenceGYL/X-Browsing-History-Review/archive/refs/heads/main.zip) 并解压。
+2. 打开 Chrome 的 `chrome://extensions/`，或 Edge 的 `edge://extensions/`。
+3. 打开右上角的“开发者模式”。
+4. 点击“加载已解压的扩展程序”。
+5. 选择解压后的插件目录。
+6. 打开或刷新 `https://x.com/`，正常浏览即可开始记录。
 
 ## 使用说明
 
