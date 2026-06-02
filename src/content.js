@@ -13,6 +13,9 @@ let settings = {
 const observedArticles = new WeakSet();
 const dwellTimers = new Map();
 const recentPostIds = new Map();
+let sweepTimer;
+let pageObserver;
+let extensionContextActive = true;
 
 const visibilityObserver = new IntersectionObserver(handleVisibility, {
   threshold: [0, 0.1, 0.25, MIN_VISIBLE_RATIO, 0.8]
@@ -21,9 +24,9 @@ const visibilityObserver = new IntersectionObserver(handleVisibility, {
 loadSettings();
 observeTweets(document);
 scheduleVisibleTweets();
-window.setInterval(scheduleVisibleTweets, SWEEP_INTERVAL_MS);
+sweepTimer = window.setInterval(scheduleVisibleTweets, SWEEP_INTERVAL_MS);
 
-const pageObserver = new MutationObserver((mutations) => {
+pageObserver = new MutationObserver((mutations) => {
   for (const mutation of mutations) {
     for (const node of mutation.addedNodes) {
       if (node instanceof Element) observeTweets(node);
@@ -57,8 +60,8 @@ window.addEventListener("focus", scheduleVisibleTweets);
 window.addEventListener("pageshow", scheduleVisibleTweets);
 
 function loadSettings() {
-  chrome.runtime.sendMessage({ type: "getSettings" }, (response) => {
-    if (chrome.runtime.lastError || !response?.ok) return;
+  sendRuntimeMessage({ type: "getSettings" }, (response, error) => {
+    if (error || !response?.ok) return;
     settings = { ...settings, ...response.settings };
     scheduleVisibleTweets();
   });
@@ -103,8 +106,8 @@ function recordVisibleTweet(article) {
   if (article.dataset.xHistoryRecording === post.id) return;
 
   article.dataset.xHistoryRecording = post.id;
-  chrome.runtime.sendMessage({ type: "recordPost", post }, (response) => {
-    const failed = chrome.runtime.lastError || !response?.ok;
+  const wasSent = sendRuntimeMessage({ type: "recordPost", post }, (response, error) => {
+    const failed = error || !response?.ok;
     delete article.dataset.xHistoryRecording;
 
     if (failed) {
@@ -116,16 +119,17 @@ function recordVisibleTweet(article) {
     article.dataset.xHistoryRecordedAt = String(Date.now());
     recentPostIds.set(post.id, Date.now());
   });
+  if (!wasSent) delete article.dataset.xHistoryRecording;
 }
 
 function scheduleRecord(article, delay = settings.dwellMs) {
-  if (dwellTimers.has(article)) return;
+  if (!extensionContextActive || dwellTimers.has(article)) return;
   const timer = window.setTimeout(() => recordVisibleTweet(article), delay);
   dwellTimers.set(article, timer);
 }
 
 function scheduleVisibleTweets() {
-  if (!settings.enabled || document.hidden) return;
+  if (!extensionContextActive || !settings.enabled || document.hidden) return;
   pruneRecentPostIds();
   observeTweets(document);
   document.querySelectorAll(ARTICLE_SELECTOR).forEach((article) => {
@@ -139,7 +143,7 @@ function scheduleVisibleTweets() {
 
 function wasPostRecordedRecently(postId) {
   const recordedAt = recentPostIds.get(postId);
-  return recordedAt && Date.now() - recoredAt < RECORD_COOLDOWN_MS;
+  return recordedAt && Date.now() - recordedAt < RECORD_COOLDOWN_MS;
 }
 
 function pruneRecentPostIds() {
@@ -182,7 +186,7 @@ function extractPost(article) {
   const tweetText = article.querySelector('[data-testid="tweetText"]');
   const userName = article.querySelector('[data-testid="User-Name"]');
   const userText = userName?.innerText || "";
-  const handleMatch = userText.match(/@[[A-Za-z0-9_]+/);
+  const handleMatch = userText.match(/@[A-Za-z0-9_]+/);
 
   return {
     id,
@@ -235,4 +239,60 @@ function clearAllTimers() {
     window.clearTimeout(timer);
   }
   dwellTimers.clear();
+}
+
+function sendRuntimeMessage(message, callback) {
+  if (!extensionContextActive || !hasExtensionContext()) {
+    stopForInvalidContext();
+    return false;
+  }
+
+  try {
+    chrome.runtime.sendMessage(message, (response) => {
+      let lastError;
+      try {
+        lastError = chrome.runtime.lastError;
+      } catch (error) {
+        stopForInvalidContext();
+        callback?.(null, error);
+        return;
+      }
+
+      if (lastError) {
+        if (isInvalidContextError(lastError)) stopForInvalidContext();
+        callback?.(null, lastError);
+        return;
+      }
+
+      callback?.(response, null);
+    });
+    return true;
+  } catch (error) {
+    if (isInvalidContextError(error)) stopForInvalidContext();
+    callback?.(null, error);
+    return false;
+  }
+}
+
+function hasExtensionContext() {
+  try {
+    return Boolean(chrome.runtime?.id);
+  } catch {
+    return false;
+  }
+}
+
+function isInvalidContextError(error) {
+  return /context invalidated|receiving end does not exist/i.test(
+    String(error?.message || error || "")
+  );
+}
+
+function stopForInvalidContext() {
+  if (!extensionContextActive) return;
+  extensionContextActive = false;
+  clearAllTimers();
+  if (sweepTimer) window.clearInterval(sweepTimer);
+  visibilityObserver.disconnect();
+  pageObserver?.disconnect();
 }
